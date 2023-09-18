@@ -24,6 +24,10 @@ This will keep you secure and safe from leaking sensitive infos.
 
 ## Release Notes
 
+### 0.2.0
+
+Optimize the extension logic
+
 ### 0.1.0
 
 Initial release of Leak Checker
