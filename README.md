@@ -13,6 +13,12 @@ This will keep you secure and safe from leaking sensitive infos by constantly sh
 - VSCode needs to be installed
 - Your repository must have some sensitive info that are not in .gitignore
 
+## Usage
+
+- Download **Leak Checker** [latest release](https://github.com/pixincreate/leak-checker/releases/latest)
+- Open VSCode > Extensions > 3 dot menu > Install from VSIX > Select **Leak Checker**
+- Once installed, `Ctrl / Cmd + Shift + P` > `Code Scanner` > Enter to Initialize
+
 ## Build (Windows specific)
 
 - Execute `winget install nodeJs` or `winget install OpenJS.NodeJS.LTS` and reload the terminal
