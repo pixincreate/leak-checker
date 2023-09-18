@@ -1,71 +1,29 @@
-# leak-checker README
+# Leak Checker
 
-This is the README for your extension "leak-checker". After writing up a brief description, we recommend including the following sections.
+Leak checker is a small extension created for personal use to stop myself and anyone who use this extension from pushing sensitive information to the internet.  
+Leak checker scans the entire repository and checks for possible `.toml` files along with `api_keys` that are not present in .gitignore and throws a warning at the user in the information dialog box that there might exist a possible sensitive information that might result in havoc if unaddressed.
 
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+This will keep you secure and safe from leaking sensitive infos.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VSCode needs to be installed
+- Your repository must have some sensitive info that are not in .gitignore
 
-## Extension Settings
+## Build (Windows specific)
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Execute `winget install nodeJs` or `winget install OpenJS.NodeJS.LTS` and reload the terminal
+- `npm init -y`
+- `npm install --save-dev yo generator-code` (This will install dependencies into your work env and not globally. If you want to enable in global use `-g` instead of `--save-dev`)
+- `npx yo code`
+- `npm install fs glob`
+- `cd` to `leak-checker`
+- Press `F5` to run the integration test
+- `npm install -g @vscode/vsce`
+- Execute: `vsce package` to export the `Leak Checker` package
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1.0
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release of Leak Checker
