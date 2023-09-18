@@ -3,7 +3,15 @@
   "displayName": "Leak Checker",
   "description": "A small extension to keep an eye on exposure of sensitive information. Created for personal use.",
   "version": "0.2.0",
-  "publisher": "PiX",
+  "publisher": "pixincreate",
+  "author": {
+    "name": "Pa1NarK"
+  },
+  "license": "CC0 1.0 Universal",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pixincreate/leak-checker.git"
+  },
   "engines": {
     "vscode": "^1.82.0"
   },
