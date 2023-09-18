@@ -68,7 +68,12 @@ async function doesPatternExistInActiveEditor() {
 	const patternsToSearch = ['sk_fjsdjbgi', 'rak_sdkfdsg', 'sb_sdbdgb', 'pc_adkfbdskg'];
 	const activeEditor = vscode.window.activeTextEditor;
 
-	if (activeEditor) {
+	if (!activeEditor) {
+		// No active editor found, exit gracefully
+		return;
+	}
+
+	try {
 		const editorContent = activeEditor.document.getText();
 		// Check if any pattern exists in the editor content
 		for (const pattern of patternsToSearch) {
@@ -88,34 +93,40 @@ async function doesPatternExistInActiveEditor() {
 				}
 			}
 		}
+	} catch (error) {
+		console.error('Error processing active editor:', error);
 	}
 }
 
-async function scanAndCheckFiles(folderPath: string) {
-	// Get a list of all files and subdirectories in the current folder
-	const entries = fs.readdirSync(folderPath);
 
-	// Iterate through each entry
-	for (const entry of entries) {
-		const entryPath = path.join(folderPath, entry);
-		// Check if the entry is a file or a directory
-		const isDirectory = fs.statSync(entryPath).isDirectory();
-		// Extract the filename using path.basename
-		const filename = path.basename(entryPath);
-		const inGitignore = existInGitIgnore(filename);
 
-		if (!fileRiskAnalyze(filename, inGitignore)) {
-			// Show a warning message
-			const selection = await vscode.window.showInformationMessage('Exposed: ' + filename, 'Resolve');
-			if (selection === 'Resolve') {
-				// Add the file to .gitignore
-				fs.appendFileSync(path.join(vscode.workspace.rootPath!, '.gitignore'), `\n${filename}`);
+
+async function scanAndCheckFiles(rootPath: string) {
+	const foldersToProcess: string[] = [rootPath]; // Initialize the queue with the root folder
+	const gitignoreSet = new Set<string>(); // Store gitignore entries in a Set for efficient lookups
+
+	while (foldersToProcess.length > 0) {
+		const currentFolder = foldersToProcess.pop()!;
+		const entries = fs.readdirSync(currentFolder);
+
+		for (const entry of entries) {
+			const entryPath = path.join(currentFolder, entry);
+			const isDirectory = fs.statSync(entryPath).isDirectory();
+			const filename = path.basename(entryPath);
+			const inGitignore = gitignoreSet.has(filename);
+
+			if (!fileRiskAnalyze(filename, inGitignore)) {
+				const selection = await vscode.window.showInformationMessage('Exposed: ' + filename, 'Resolve');
+				if (selection === 'Resolve') {
+					// Add the file to gitignoreSet
+					gitignoreSet.add(filename);
+					fs.appendFileSync(path.join(vscode.workspace.rootPath!, '.gitignore'), `\n${filename}`);
+				}
 			}
-		}
 
-		// If it's a directory, recursively scan its contents
-		if (isDirectory) {
-			await scanAndCheckFiles(entryPath);
+			if (isDirectory) {
+				foldersToProcess.push(entryPath); // Add subdirectories to the list for processing
+			}
 		}
 	}
 }

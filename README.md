@@ -37,6 +37,10 @@ I'm new to this and I believe this is not robust and will eat your RAM. So use w
 
 ## Release Notes
 
+### 0.3.0
+
+Reduce memory usage by means of caching
+
 ### 0.2.0
 
 Optimize the extension logic
