@@ -1,9 +1,12 @@
 # Leak Checker
 
-Leak checker is a small extension created for personal use to stop myself and anyone who use this extension from pushing sensitive information to the internet.  
-Leak checker scans the entire repository and checks for possible `.toml` files along with `api_keys` that are not present in .gitignore and throws a warning at the user in the information dialog box that there might exist a possible sensitive information that might result in havoc if unaddressed.
+**Leak checker** is a small extension created for personal use to stop myself and anyone who use this extension from pushing sensitive information to the internet.
 
-This will keep you secure and safe from leaking sensitive infos.
+**Leak checker** scans the entire repository and checks for possible `.toml` files along with `api_keys` that are not present in .gitignore and throws a warning at the user in the information dialog box that there might exist a possible sensitive information that might result in havoc if unaddressed.
+
+This will keep you secure and safe from leaking sensitive infos by constantly showing exposure warnings in the _bottom right corner_.
+
+![Alt text](src/images/image.png)
 
 ## Requirements
 
@@ -21,6 +24,10 @@ This will keep you secure and safe from leaking sensitive infos.
 - Press `F5` to run the integration test
 - `npm install -g @vscode/vsce`
 - Execute: `vsce package` to export the `Leak Checker` package
+
+### Quick Note
+
+I'm new to this and I believe this is not robust and will eat your RAM. So use with caution, you've been warned!
 
 ## Release Notes
 
