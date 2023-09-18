@@ -1,26 +1,124 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "leak-checker" is now active!');
+	const disposable = vscode.commands.registerCommand('leak-checker.scanCodeBase', () => {
+		console.log("Code scanning has been initialized!");
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('leak-checker.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from leak_checker!');
+		// Register the onDidChangeTextDocument event handler
+		const documentChangeDisposable = vscode.workspace.onDidChangeTextDocument(onDocumentChanged);
+		context.subscriptions.push(documentChangeDisposable);
 	});
-
 	context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+// This function is called when a text document is changed
+function onDocumentChanged(event: vscode.TextDocumentChangeEvent) {
+	// Check if the event corresponds to a text document
+	if (event && event.document) {
+		const rootPath = vscode.workspace.rootPath;
+		if (!rootPath) {
+			vscode.window.showErrorMessage('No workspace or folder opened!');
+			return;
+		}
+		scanAndCheckFiles(rootPath);
+		doesPatternExistInActiveEditor();
+	}
+}
+
+function existInGitIgnore(filename: string): boolean {
+	try {
+		const gitignorePath = path.join(vscode.workspace.rootPath!, '.gitignore');
+		// Check if the .gitignore file exists
+		if (fs.existsSync(gitignorePath)) {
+			const gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+			// Check if the filename is in .gitignore
+			if (gitignoreContent.includes(filename)) {
+				return true;
+			}
+		}
+	} catch (error) {
+		console.error('Error checking .gitignore:', error);
+	}
+	return false;
+}
+
+
+function fileRiskAnalyze(filename: string, inGitignore: boolean) {
+	// Define an array of filenames to compare against
+	const filenamesToCheck = ["sample_auth.toml", "auth.toml", "connector_auth.toml"];
+	// Check if `filename` is in the array and `inGitignore` is true
+	if (inGitignore && filenamesToCheck.includes(filename)) {
+		return true;
+	} else if (!inGitignore && filenamesToCheck.includes(filename)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
+// Function to check if any pattern exists in the active editor
+async function doesPatternExistInActiveEditor() {
+
+	// Define the array of patterns to search for
+	const patternsToSearch = ['sk_fjsdjbgi', 'rak_sdkfdsg', 'sb_sdbdgb', 'pc_adkfbdskg'];
+	const activeEditor = vscode.window.activeTextEditor;
+
+	if (activeEditor) {
+		const editorContent = activeEditor.document.getText();
+		// Check if any pattern exists in the editor content
+		for (const pattern of patternsToSearch) {
+			if (editorContent.includes(pattern)) {
+				// Show a warning message
+				const selection = await vscode.window.showInformationMessage(`Exposed: Pattern found in ${activeEditor.document.fileName}`, 'Resolve');
+
+				if (selection === 'Resolve') {
+					// Remove the pattern from the file content
+					const updatedContent = editorContent.replace(pattern, '');
+					activeEditor.edit((editBuilder) => {
+						const start = new vscode.Position(0, 0);
+						const end = new vscode.Position(activeEditor.document.lineCount - 1, 0);
+						const range = new vscode.Range(start, end);
+						editBuilder.replace(range, updatedContent);
+					});
+				}
+			}
+		}
+	}
+
+	console.log('No matching patterns found in the active editor.');
+	return false;
+}
+
+async function scanAndCheckFiles(folderPath: string) {
+	// Get a list of all files and subdirectories in the current folder
+	const entries = fs.readdirSync(folderPath);
+
+	// Iterate through each entry
+	for (const entry of entries) {
+		const entryPath = path.join(folderPath, entry);
+		// Check if the entry is a file or a directory
+		const isDirectory = fs.statSync(entryPath).isDirectory();
+		// Extract the filename using path.basename
+		const filename = path.basename(entryPath);
+		const inGitignore = existInGitIgnore(filename);
+
+		if (!fileRiskAnalyze(filename, inGitignore)) {
+			// Show a warning message
+			const selection = vscode.window.showInformationMessage('Exposed: ' + filename, 'Resolve');
+			if (await selection === 'Resolve') {
+				// Add the file to .gitignore
+				fs.appendFileSync(path.join(vscode.workspace.rootPath!, '.gitignore'), `\n${filename}`);
+			}
+		}
+
+		// If it's a directory, recursively print its contents
+		if (isDirectory) {
+			scanAndCheckFiles(entryPath);
+		}
+	}
+}
+
 export function deactivate() { }
