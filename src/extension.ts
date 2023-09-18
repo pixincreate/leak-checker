@@ -3,27 +3,33 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
+	console.log("Code scanning has been initialized!");
 
-	const disposable = vscode.commands.registerCommand('leak-checker.scanCodeBase', () => {
-		console.log("Code scanning has been initialized!");
+	// Register the onDidSaveTextDocument event handler
+	const documentChangeDisposable = vscode.workspace.onDidChangeTextDocument(onDocumentChanged);
+	context.subscriptions.push(documentChangeDisposable);
 
-		// Register the onDidChangeTextDocument event handler
-		const documentChangeDisposable = vscode.workspace.onDidChangeTextDocument(onDocumentChanged);
-		context.subscriptions.push(documentChangeDisposable);
-	});
-	context.subscriptions.push(disposable);
+	// Register the scanCodeBase command
+	context.subscriptions.push(vscode.commands.registerCommand('leak-checker.scanCodeBase', scanCodeBase));
+}
+
+async function scanCodeBase() {
+	const rootPath = vscode.workspace.rootPath;
+
+	if (!rootPath) {
+		vscode.window.showErrorMessage('No workspace or folder opened!');
+		return;
+	}
+
+	await scanAndCheckFiles(rootPath);
+	await doesPatternExistInActiveEditor();
 }
 
 // This function is called when a text document is changed
 function onDocumentChanged(event: vscode.TextDocumentChangeEvent) {
 	// Check if the event corresponds to a text document
 	if (event && event.document) {
-		const rootPath = vscode.workspace.rootPath;
-		if (!rootPath) {
-			vscode.window.showErrorMessage('No workspace or folder opened!');
-			return;
-		}
-		scanAndCheckFiles(rootPath);
+		scanAndCheckFiles(vscode.workspace.rootPath!);
 		doesPatternExistInActiveEditor();
 	}
 }
@@ -45,9 +51,7 @@ function existInGitIgnore(filename: string): boolean {
 	return false;
 }
 
-
-function fileRiskAnalyze(filename: string, inGitignore: boolean) {
-	// Define an array of filenames to compare against
+function fileRiskAnalyze(filename: string, inGitignore: boolean): boolean {
 	const filenamesToCheck = ["sample_auth.toml", "auth.toml", "connector_auth.toml"];
 	// Check if `filename` is in the array and `inGitignore` is true
 	if (inGitignore && filenamesToCheck.includes(filename)) {
@@ -61,8 +65,6 @@ function fileRiskAnalyze(filename: string, inGitignore: boolean) {
 
 // Function to check if any pattern exists in the active editor
 async function doesPatternExistInActiveEditor() {
-
-	// Define the array of patterns to search for
 	const patternsToSearch = ['sk_fjsdjbgi', 'rak_sdkfdsg', 'sb_sdbdgb', 'pc_adkfbdskg'];
 	const activeEditor = vscode.window.activeTextEditor;
 
@@ -87,9 +89,6 @@ async function doesPatternExistInActiveEditor() {
 			}
 		}
 	}
-
-	console.log('No matching patterns found in the active editor.');
-	return false;
 }
 
 async function scanAndCheckFiles(folderPath: string) {
@@ -107,16 +106,16 @@ async function scanAndCheckFiles(folderPath: string) {
 
 		if (!fileRiskAnalyze(filename, inGitignore)) {
 			// Show a warning message
-			const selection = vscode.window.showInformationMessage('Exposed: ' + filename, 'Resolve');
-			if (await selection === 'Resolve') {
+			const selection = await vscode.window.showInformationMessage('Exposed: ' + filename, 'Resolve');
+			if (selection === 'Resolve') {
 				// Add the file to .gitignore
 				fs.appendFileSync(path.join(vscode.workspace.rootPath!, '.gitignore'), `\n${filename}`);
 			}
 		}
 
-		// If it's a directory, recursively print its contents
+		// If it's a directory, recursively scan its contents
 		if (isDirectory) {
-			scanAndCheckFiles(entryPath);
+			await scanAndCheckFiles(entryPath);
 		}
 	}
 }

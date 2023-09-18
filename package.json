@@ -2,7 +2,7 @@
   "name": "leak-checker",
   "displayName": "Leak Checker",
   "description": "A small extension to keep an eye on exposure of sensitive information. Created for personal use.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "PiX",
   "engines": {
     "vscode": "^1.82.0"
@@ -16,7 +16,7 @@
     "commands": [
       {
         "command": "leak-checker.scanCodeBase",
-        "title": "Scan Code"
+        "title": "Code Scanner"
       }
     ]
   },
